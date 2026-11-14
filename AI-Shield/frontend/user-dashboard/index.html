@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>AI Shield — User</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#"><span class="brand-mark">盾</span><span>AI <b>SHIELD</b><small>DATA PROTECTION</small></span></a>
+      <div class="side-label">WORKSPACE</div>
+      <a class="nav active" href="#"><span>⌂</span> Έλεγχος prompt</a>
+      <div class="side-foot"><span class="pulse"></span> Προστασία ενεργή <small>AI Shield Gateway</small></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div><div class="eyebrow">USER WORKSPACE</div><h1>Έλεγχος ασφαλείας</h1></div><button class="icon-btn" id="settingsBtn" aria-label="Ρυθμίσεις">⚙</button></header>
+      <section class="welcome">
+        <div><div class="eyebrow">ΚΑΛΩΣ ΗΡΘΕΣ ΣΤΟ AI SHIELD</div><h2>Πριν στείλεις ένα prompt,<br><span>έλεγξέ το με ασφάλεια.</span></h2><p>Εντοπίζουμε ευαίσθητα δεδομένα και εφαρμόζουμε την κατάλληλη πολιτική πριν προωθηθεί το περιεχόμενό σου.</p></div>
+        <div class="shield-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="shield-icon">✓</div></div>
+      </section>
+      <section class="workspace-grid">
+        <div class="panel compose-panel">
+          <div class="panel-head"><div><div class="eyebrow">ΝΕΟΣ ΕΛΕΓΧΟΣ</div><h3>Το prompt σου</h3></div><span class="live-pill"><i></i> LOCAL INPUT</span></div>
+          <label class="field-label" for="toolName">AI εργαλείο / παραλήπτης</label>
+          <input id="toolName" class="text-input" value="ChatGPT" maxlength="100" placeholder="π.χ. ChatGPT, Claude">
+          <label class="field-label" for="prompt">Περιεχόμενο prompt</label>
+          <textarea id="prompt" maxlength="20000" placeholder="Επικόλλησε ή γράψε εδώ το prompt που θέλεις να ελέγξεις…"></textarea>
+          <div class="input-meta"><span>Το περιεχόμενο ελέγχεται πριν από την προώθηση.</span><span id="charCount">0 / 20.000</span></div>
+          <div class="actions"><button class="btn btn-primary" id="scanBtn"><span>⌕</span> Έλεγχος ασφαλείας</button><button class="btn btn-quiet" id="clearBtn">Καθαρισμός</button></div>
+          <div class="notice"><span>ⓘ</span><p>Μην εισάγεις πραγματικά μυστικά ή κωδικούς σε περιβάλλον επίδειξης. Το AI Shield καταγράφει συμβάντα ελέγχου.</p></div>
+        </div>
+        <div class="panel result-panel">
+          <div class="panel-head"><div><div class="eyebrow">ΑΠΟΤΕΛΕΣΜΑ</div><h3>Απόφαση πολιτικής</h3></div><span class="status-dot">●</span></div>
+          <div id="emptyState" class="empty-state"><div class="empty-symbol">⌁</div><h4>Έτοιμο για έλεγχο</h4><p>Το αποτέλεσμα, το επίπεδο κινδύνου και τα ευρήματα θα εμφανιστούν εδώ.</p></div>
+          <div id="resultState" hidden>
+            <div class="decision" id="decisionBox"><div class="decision-icon" id="decisionIcon">✓</div><div><div class="eyebrow">ΕΝΕΡΓΕΙΑ</div><h2 id="decisionTitle">ALLOW</h2><p id="decisionReason"></p></div></div>
+            <div class="risk-row"><span>Επίπεδο κινδύνου</span><strong id="riskValue">LOW</strong></div>
+            <div class="findings-head"><h4>Ευρήματα</h4><span id="findingCount">0</span></div>
+            <div id="findingsList" class="findings-list"></div>
+            <div id="safePromptWrap" class="safe-prompt" hidden><div class="findings-head"><h4>Ασφαλές prompt</h4><button class="copy-btn" id="copyBtn">Αντιγραφή</button></div><pre id="safePrompt"></pre></div>
+            <div id="blockedNote" class="blocked-note" hidden>Το prompt δεν προωθήθηκε από την πολιτική ασφαλείας.</div>
+          </div>
+        </div>
+      </section>
+      <footer>AI Shield <span>•</span> Προστασία δεδομένων πριν από τη χρήση AI</footer>
+    </main>
+  </div>
+  <dialog id="settingsDialog"><form method="dialog" class="settings-card"><div class="panel-head"><div><div class="eyebrow">ΡΥΘΜΙΣΕΙΣ</div><h3>Σύνδεση API</h3></div><button class="icon-btn">✕</button></div><label class="field-label" for="apiBase">API Base URL</label><input id="apiBase" class="text-input" placeholder="http://localhost:8000"><p class="helper">Προεπιλογή: http://localhost:8000. Άφησέ το κενό αν το frontend σερβίρεται από το ίδιο origin με το API.</p><button class="btn btn-primary" id="saveSettings">Αποθήκευση</button></form></dialog>
+  <script src="script.js"></script>
+</body></html>
