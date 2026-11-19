@@ -1,0 +1,39 @@
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ai_shield}
+      POSTGRES_USER: ${POSTGRES_USER:-ai_shield}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a strong POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ai_shield} -d ${POSTGRES_DB:-ai_shield}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:?Set a strong ADMIN_API_TOKEN in .env}
+      SHADOW_INGEST_TOKEN: ${SHADOW_INGEST_TOKEN:?Add SHADOW_INGEST_TOKEN to .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ai_shield}:${POSTGRES_PASSWORD:-change_me}@db:5432/${POSTGRES_DB:-ai_shield}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

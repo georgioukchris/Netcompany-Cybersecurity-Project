@@ -1,0 +1,94 @@
+/* NexGuard · public website */
+main,.nav,.footer{position:relative;z-index:1}
+.nav{position:sticky;top:14px;z-index:10;max-width:1180px;margin:14px auto 0;padding:10px 12px 10px 18px;border-radius:20px;
+  display:flex;align-items:center;gap:22px}
+.nav nav{display:flex;gap:4px;margin-left:auto}
+.nav nav a{color:var(--text-2);text-decoration:none;font:500 14px var(--body);padding:8px 13px;border-radius:10px;transition:.2s}
+.nav nav a:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-cta{padding:10px 20px}
+.burger{display:none;margin-left:auto;background:transparent;border:1px solid var(--edge-2);border-radius:11px;width:42px;height:40px;cursor:pointer;padding:10px}
+.burger span{display:block;height:2px;background:var(--text);margin:4px 0;border-radius:2px}
+
+.hero{max-width:1180px;margin:0 auto;padding:80px 28px 40px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.hero h1{font:700 clamp(36px,5vw,58px)/1.08 var(--head);margin:14px 0 18px;letter-spacing:-.8px}
+.grad{background:linear-gradient(90deg,#6fb1ff,#8f74ff 60%,#c49bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:17px;color:var(--text-2);max-width:560px;margin:0}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.cta .btn{padding:14px 24px;font-size:15px}
+.cta.center{justify-content:center}
+.works{margin-top:22px;color:var(--muted);font-size:13.5px}
+.works b{color:var(--text)}
+.hero-visual{position:relative;display:flex;flex-direction:column;align-items:center}
+.emblem{width:min(360px,90%);filter:drop-shadow(0 0 44px rgba(60,140,255,.5));animation:float 6s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px)}}
+.demo{width:100%;max-width:440px;margin-top:-6px;padding:18px 20px}
+.demo-row small{display:block;font:700 10px var(--body);letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.demo-row p{margin:0;font-size:14px}
+mark{border-radius:6px;padding:1px 6px;color:inherit}
+mark.real{background:rgba(255,138,154,.18);box-shadow:inset 0 0 0 1px rgba(255,138,154,.4)}
+mark.tok{background:rgba(110,231,216,.16);box-shadow:inset 0 0 0 1px rgba(110,231,216,.45);font-family:ui-monospace,monospace;font-size:13px}
+.demo-arrow{display:flex;align-items:center;gap:10px;margin:12px 0;color:var(--blue-2);font:700 11px var(--body);letter-spacing:1.8px;text-transform:uppercase}
+.demo-arrow:before,.demo-arrow:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--blue-2),transparent)}
+
+.pillars{max-width:1124px;margin:20px auto 0;display:grid;grid-template-columns:repeat(4,1fr);padding:26px 10px}
+.pillars>div{padding:4px 22px;border-left:1px solid var(--edge);text-align:center}
+.pillars>div:first-child{border-left:0}
+.pi{display:block;font-size:26px;margin-bottom:8px;filter:drop-shadow(0 0 10px rgba(80,150,255,.6))}
+.pillars b{display:block;font:700 13px var(--head);letter-spacing:3px;text-transform:uppercase}
+.pillars small{display:block;font:600 10px var(--body);letter-spacing:2.4px;text-transform:uppercase;color:var(--muted)}
+.pillars p{margin:10px 0 0;color:var(--text-2);font-size:13.5px}
+
+.section{max-width:1180px;margin:0 auto;padding:90px 28px 0}
+.section h2{font:700 clamp(26px,3vw,36px)/1.2 var(--head);margin:10px 0 30px;max-width:720px}
+.steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.steps li{padding:26px}
+.num{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:12px;font:700 16px var(--head);
+  background:linear-gradient(135deg,#2f6bff,#7b5cff);box-shadow:0 6px 18px rgba(61,110,255,.4)}
+.steps h3,.grid h3{font:600 18px var(--head);margin:14px 0 8px}
+.steps p,.grid p{margin:0;color:var(--text-2);font-size:14.5px}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.chip{padding:20px;border-radius:18px}
+.chip b{display:inline-block;font:700 12px var(--body);letter-spacing:1.6px;padding:4px 11px;border-radius:999px;margin-bottom:10px}
+.chip span{display:block;font-weight:600}
+.chip small{display:block;color:var(--muted);margin-top:4px}
+.chip.block b{background:rgba(255,120,140,.16);color:var(--red)}
+.chip.warn b{background:rgba(255,196,110,.15);color:var(--amber)}
+.chip.redact b{background:rgba(110,231,216,.14);color:var(--cyan)}
+.chip.allow b{background:rgba(95,211,160,.14);color:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid article{padding:24px}
+.privacy-card{display:grid;grid-template-columns:1fr 1fr;gap:30px;padding:36px;align-items:center}
+.privacy-card h2{margin-bottom:10px}
+.never{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.never li{padding:12px 16px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid var(--edge)}
+.never li:before{content:"✕";color:var(--red);font-weight:700;margin-right:10px}
+.contact-card{text-align:center;padding:44px 28px}
+.contact-card img{filter:drop-shadow(0 0 22px rgba(70,150,255,.5))}
+.contact-card h2{margin:10px auto 8px}
+.footer{max-width:1180px;margin:90px auto 0;padding:30px 28px 40px;border-top:1px solid var(--edge);text-align:center}
+.footer .logo{justify-content:center}
+.footer .logo img{height:32px}
+.slogan{font:600 12px var(--body);letter-spacing:5px;color:var(--text-2);margin:16px 0 6px}
+.slogan b{color:var(--blue-2)}
+.small{font-size:12px;color:var(--faint);margin:0}
+
+@media (max-width:980px){
+  .hero{grid-template-columns:1fr;padding-top:50px;text-align:left}
+  .hero-visual{order:-1}
+  .emblem{width:220px}
+  .pillars,.chips{grid-template-columns:1fr 1fr;gap:18px 0}
+  .pillars>div:nth-child(3){border-left:0}
+  .steps,.grid{grid-template-columns:1fr}
+  .privacy-card{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .nav{margin:10px;gap:10px}
+  .nav .tagline,.nav-cta{display:none}
+  .burger{display:block}
+  .nav nav{display:none;position:absolute;left:0;right:0;top:calc(100% + 8px);flex-direction:column;padding:10px;
+    background:rgba(16,22,56,.96);border:1px solid var(--edge);border-radius:18px}
+  .nav nav.open{display:flex}
+  .nav nav a{padding:12px 14px}
+  .chips{grid-template-columns:1fr}
+  .section{padding-top:64px}
+}

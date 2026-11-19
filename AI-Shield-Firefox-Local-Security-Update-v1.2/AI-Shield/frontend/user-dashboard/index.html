@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#12152e">
+<title>NexGuard — Secure AI Chat</title>
+<link rel="icon" type="image/png" href="img/favicon.png?v=1.9.0">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png?v=1.9.0">
+<link rel="stylesheet" href="style.css?v=1.9.0">
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"><i class="glow g1"></i><i class="glow g2"></i><i class="glow g3"></i></div>
+
+<div class="app" id="top">
+  <header class="topbar glass">
+    <a class="brand" href="#" aria-label="NexGuard"><img class="brand-mark" src="img/nexguard-emblem.png?v=1.9.0" alt="" width="68" height="40"><span class="brand-txt"><span class="wordmark">NEXGUARD</span><small>SECURE AI GATEWAY</small></span></a>
+    <nav class="tabs"><a class="tab active" href="#top">Secure AI Chat</a><a class="tab" href="#extension">Browser Extension</a></nav>
+    <div class="top-right">
+      <span class="live"><i></i>Προστασία ενεργή</span>
+      <span class="user-chip" id="userChip" hidden><b id="userName"></b><small id="userRole"></small></span><button class="icon-btn" id="settingsBtn" aria-label="Ρυθμίσεις" title="Ρυθμίσεις">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button><button class="icon-btn" id="logoutBtn" title="Αποσύνδεση" aria-label="Αποσύνδεση" hidden><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
+    </div>
+  </header>
+
+  <section class="hero-row">
+    <div class="glass welcome">
+      <div class="avatar">✧</div>
+      <div><b>Μίλησε με AI, με ένα επίπεδο προστασίας</b><small>Κάθε μήνυμα ελέγχεται πριν φύγει προς το AI, και κάθε απάντηση πριν εμφανιστεί.</small></div>
+    </div>
+    <div class="glass stats">
+      <div class="stat"><span class="ico i1">✉</span><div><small>Μηνύματα</small><b id="statMessages">0</b></div></div>
+      <div class="stat"><span class="ico i2">✂</span><div><small title="Στοιχεία που στάλθηκαν ως ψευδώνυμα">Ψευδώνυμα</small><b id="statHidden">0</b></div></div>
+      <div class="stat"><span class="ico i3">⛔</span><div><small>Αποκλεισμοί</small><b id="statBlocked">0</b></div></div>
+      <button class="btn-pill" id="newChatBtn">＋ ΝΕΑ ΣΥΝΟΜΙΛΙΑ</button>
+    </div>
+  </section>
+
+  <section class="layout">
+    <div class="glass chat-panel">
+      <div class="chat-head">
+        <div><div class="eyebrow">AI ASSISTANT</div><h3>Συνομιλία</h3></div>
+        <div class="selects">
+          <label class="sr" for="provider">AI Provider</label>
+          <select id="provider" class="chip-select"><option value="gemini">Google Gemini</option></select>
+          <label class="sr" for="model">Μοντέλο</label>
+          <select id="model" class="chip-select"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option></select>
+        </div>
+      </div>
+
+      <div id="securityStatus" class="security-status">🔒 Τα μηνύματά σου ελέγχονται πριν σταλούν.</div>
+
+      <div id="chatMessages" class="chat-messages" aria-live="polite">
+        <div class="chat-empty">
+          <div class="empty-orb"></div>
+          <h4>Πώς μπορώ να βοηθήσω;</h4>
+          <p>Ξεκίνα μια συνομιλία. Το AI Shield θα ελέγξει το περιεχόμενο πριν φύγει προς το AI.</p>
+        </div>
+      </div>
+
+      <div class="chat-compose">
+        <textarea id="messageInput" maxlength="12000" rows="3" placeholder="Γράψε το μήνυμά σου… (Enter για αποστολή, Shift+Enter για νέα γραμμή)"></textarea>
+        <div class="compose-bottom">
+          <span id="charCount">0 / 12.000</span>
+          <button class="btn btn-primary" id="sendBtn">Αποστολή ↗</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="glass card">
+        <div class="eyebrow">ΤΕΛΕΥΤΑΙΑ ΑΠΟΦΑΣΗ</div>
+        <h3>AI Shield</h3>
+        <div id="decisionPanel" class="decision-panel" hidden></div>
+        <p class="muted" id="decisionEmpty">Μόλις στείλεις μήνυμα, θα δεις εδώ τι αποφάσισε το AI Shield και γιατί.</p>
+      </div>
+
+      <div class="glass card">
+        <div class="eyebrow">ΠΩΣ ΣΕ ΠΡΟΣΤΑΤΕΥΕΙ</div>
+        <h3>Πολιτική DLP</h3>
+        <ul class="legend">
+          <li><span class="tag BLOCK">🛑 BLOCK</span><p>Κωδικοί, API keys, private keys, στοιχεία κάρτας: <b>δεν στέλνονται</b>.</p></li>
+          <li><span class="tag WARN">⚠️ WARN</span><p>Υγεία, NDA, συμβάσεις, εσωτερικά emails: <b>ζητείται επιβεβαίωση</b>.</p></li>
+          <li><span class="tag REDACT">✂️ REDACT</span><p>ΑΦΜ, ΑΜΚΑ, ταυτότητες, IBAN, email, κινητά: στέλνονται ως <b>ψευδώνυμα</b> και επανέρχονται μόνο σε σένα.</p></li>
+          <li><span class="tag ALLOW">✅ ALLOW</span><p>Ονόματα και διευθύνσεις: στέλνονται κανονικά.</p></li>
+        </ul>
+      </div>
+
+      <div class="notice">
+        <span>ⓘ</span>
+        <p>Demo: μην εισάγεις πραγματικά προσωπικά δεδομένα, credentials ή εταιρικά μυστικά. Το Gemini API free tier έχει δικούς του όρους χρήσης δεδομένων.</p>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ================= Browser extension: download & install ================= -->
+  <section class="glass ext" id="extension">
+    <div class="ext-intro">
+      <div class="eyebrow">BROWSER EXTENSION</div>
+      <h3>Η ίδια προστασία μέσα στα ChatGPT, Gemini και Claude</h3>
+      <p class="muted">Το extension ελέγχει κάθε μήνυμα πριν πατήσεις Send στις σελίδες των AI και εφαρμόζει την ίδια πολιτική DLP: μπλοκάρει κωδικούς και κάρτες, ζητά επιβεβαίωση για ευαίσθητα έγγραφα και στέλνει ΑΦΜ, IBAN κ.λπ. ως ψευδώνυμα.</p>
+      <div class="dl-grid" id="downloads">
+        <a class="dl" data-browser="firefox" href="#"><span class="b-logo ff">🦊</span><div><b>Firefox</b><small data-meta>Φόρτωση…</small></div><span class="dl-arrow">⤓</span></a>
+        <a class="dl" data-browser="chrome" href="#"><span class="b-logo cr">◉</span><div><b>Chrome / Edge / Brave</b><small data-meta>Φόρτωση…</small></div><span class="dl-arrow">⤓</span></a>
+      </div>
+      <div class="ext-sites"><span>ChatGPT</span><span>Gemini</span><span>Claude</span></div>
+      <ul class="ext-feats">
+        <li><span class="fi f1">🛑</span><div><b>Σταματά τις διαρροές πριν γίνουν</b><small>Κωδικοί, API keys και στοιχεία καρτών δεν φεύγουν ποτέ προς το AI.</small></div></li>
+        <li><span class="fi f2">⚠️</span><div><b>Ρωτά πριν στείλεις κάτι ευαίσθητο</b><small>Ιατρικά, NDA, συμβάσεις, εσωτερικά emails: εσύ αποφασίζεις, με πλήρη ενημέρωση.</small></div></li>
+        <li><span class="fi f3">✂️</span><div><b>Ψευδώνυμα που επανέρχονται μόνο σε σένα</b><small>Το AI βλέπει [AFM_001]· εσύ βλέπεις τον πραγματικό ΑΦΜ στην απάντηση.</small></div></li>
+      </ul>
+    </div>
+
+    <div class="ext-steps">
+      <div class="seg" role="tablist" aria-label="Browser">
+        <button role="tab" aria-selected="true" data-tab="firefox" class="on">Firefox</button>
+        <button role="tab" aria-selected="false" data-tab="chrome">Chrome / Edge</button>
+      </div>
+      <ol class="steps" data-steps="firefox">
+        <li><b>Κατέβασε το αρχείο</b><span>Πάτα «Firefox» αριστερά. Κράτα το zip όπως είναι, χωρίς αποσυμπίεση.</span></li>
+        <li><b>Άνοιξε το about:debugging</b><span>Γράψε στη γραμμή διευθύνσεων <code>about:debugging#/runtime/this-firefox</code></span></li>
+        <li><b>Load Temporary Add-on…</b><span>Διάλεξε το <code>ai-shield-firefox-….zip</code> που κατέβασες.</span></li>
+        <li><b>Ρύθμισε τη σύνδεση</b><span><code>about:addons</code> → AI Shield → ⋯ → <b>Options</b>. Βάλε το API URL, το token επέκτασης και την ομάδα σου, ενεργοποίησε το Prompt Guard και πάτα Αποθήκευση.</span></li>
+        <li><b>Ανανέωσε τις σελίδες AI</b><span>F5 στα ChatGPT / Gemini / Claude. Δοκίμασε από τις ρυθμίσεις → «Δοκιμή πολιτικής».</span></li>
+      </ol>
+      <ol class="steps" data-steps="chrome" hidden>
+        <li><b>Κατέβασε και αποσυμπίεσε</b><span>Πάτα «Chrome / Edge / Brave» αριστερά και κάνε <b>αποσυμπίεση</b> (Extract All) σε έναν φάκελο.</span></li>
+        <li><b>Άνοιξε τα extensions</b><span><code>chrome://extensions</code> (Edge: <code>edge://extensions</code>) και ενεργοποίησε το <b>Developer mode</b>.</span></li>
+        <li><b>Load unpacked</b><span>Διάλεξε τον φάκελο που περιέχει το <code>manifest.json</code>.</span></li>
+        <li><b>Ρύθμισε τη σύνδεση</b><span>Details → <b>Extension options</b>. Βάλε το API URL, το token επέκτασης και την ομάδα σου, ενεργοποίησε το Prompt Guard και πάτα Αποθήκευση.</span></li>
+        <li><b>Ανανέωσε τις σελίδες AI</b><span>F5 στα ChatGPT / Gemini / Claude. Δοκίμασε από τις ρυθμίσεις → «Δοκιμή πολιτικής».</span></li>
+      </ol>
+      <div class="ext-note">
+        <div><small>API URL</small><code id="extApiUrl">http://localhost:8000</code><button type="button" class="copy" data-copy="extApiUrl" title="Αντιγραφή">⧉</button></div>
+        <p>🔑 Το <b>token επέκτασης</b> (SHADOW_INGEST_TOKEN) σου το δίνει ο διαχειριστής. Στον Firefox το extension μένει μέχρι να κλείσει ο browser· στο επόμενο άνοιγμα επανάλαβε το βήμα 3.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>NexGuard <span>•</span> Security today. Trust tomorrow.</footer>
+</div>
+
+<dialog id="settingsDialog">
+  <form method="dialog" class="settings-card">
+    <div class="dlg-head"><div><div class="eyebrow">ΡΥΘΜΙΣΕΙΣ</div><h3>API σύνδεση</h3></div><button class="close" aria-label="Κλείσιμο">✕</button></div>
+    <label class="field-label" for="apiBase">Backend API URL</label>
+    <input id="apiBase" class="text-input" placeholder="http://localhost:8000">
+    <p class="helper">Άφησέ το κενό όταν χρησιμοποιείς το dashboard από το ίδιο backend. Το AI API key δεν εισάγεται εδώ — παραμένει στο backend .env.</p>
+    <button class="btn btn-primary" id="saveSettings">Αποθήκευση</button>
+  </form>
+</dialog>
+<script src="script.js?v=1.9.0"></script>
+</body>
+</html>

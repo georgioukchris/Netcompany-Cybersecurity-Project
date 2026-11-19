@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1220">
+<title>NexGuard — Security Console</title>
+<link rel="icon" type="image/png" href="img/favicon.png?v=1.9.1">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png?v=1.9.1">
+<link rel="stylesheet" href="style.css?v=1.9.1">
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"><i class="glow g1"></i><i class="glow g2"></i><i class="glow g3"></i></div>
+<div class="app">
+<header class="topbar">
+  <a class="brand" href="#" aria-label="NexGuard"><img class="brand-mark" src="img/nexguard-emblem.png?v=1.9.1" alt="" width="68" height="40"><span class="brand-txt"><span class="wordmark">NEXGUARD</span><small>SECURITY CONSOLE</small></span></a>
+  <nav class="tabs" aria-label="Ενότητες">
+    <a class="tab active" href="#intelligence">Data Intelligence</a>
+    <a class="tab" href="#investigations">Investigation Center</a>
+    <a class="tab" href="#dlp-policy">DLP Policy</a>
+    <a class="tab" href="#shadow-radar">Shadow AI Radar</a>
+    <a class="tab" href="#users">Χρήστες</a>
+  </nav>
+  <div class="top-right">
+    <span class="conn"><i id="connDot"></i><span id="connectionText">Δεν έχει ελεγχθεί</span></span>
+    <span class="user-chip" id="userChip" hidden><b id="userName"></b><small id="userRole"></small></span><button class="icon-btn" id="settingsBtn" title="Ρυθμίσεις" aria-label="Ρυθμίσεις"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button class="icon-btn" id="logoutBtn" title="Αποσύνδεση" aria-label="Αποσύνδεση" hidden><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
+  </div>
+</header>
+<main class="main">
+<section class="hero-row">
+  <div class="glass profile">
+    <div class="avatar" id="analystAvatar">?</div>
+    <div class="who"><b id="analystName2">Analyst</b><small id="analystText">Όρισε όνομα στις ρυθμίσεις</small></div>
+    <button class="icon-btn small" id="profileEdit" title="Αλλαγή analyst" aria-label="Αλλαγή analyst">✎</button>
+  </div>
+  <div class="glass stats">
+    <div class="stat"><span class="ico i1"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12A9 9 0 1 1 12 3v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg></span><div><small>Ευρήματα · <span id="statWindow">24 ώρες</span></small><b id="statFindings">—</b></div><em id="statFindingsSub"></em></div>
+    <div class="stat"><span class="ico i2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></span><div><small>Ενεργά περιστατικά</small><b id="statActive">—</b></div><em id="statCritical"></em></div>
+    <div class="stat"><span class="ico i3"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 12l6-6"/></svg></span><div><small>Unapproved AI tools</small><b id="statUnapproved">—</b></div><em id="statTools"></em></div>
+    <button class="btn-pill" id="refreshAllBtn">↻ ΑΝΑΝΕΩΣΗ</button>
+  </div>
+</section>
+
+<!-- ================= 5. Sensitive Data Intelligence ================= -->
+<section class="panel intel-panel" id="intelligence">
+  <div class="panel-head">
+    <div><div class="eyebrow">SENSITIVE DATA INTELLIGENCE</div><h3>Κατηγορίες ευαίσθητων δεδομένων</h3>
+    <p>Μόνο κατηγορίες και πλήθη ευρημάτων. Ποτέ πραγματικές τιμές ή raw prompts.<span id="intelThreatNote"></span></p></div>
+    <div class="radar-actions">
+      <div class="seg" role="group" aria-label="Χρονικό διάστημα" id="intelWindow">
+        <button data-hours="1">1 ώρ.</button><button data-hours="24" class="on">24 ώρ.</button><button data-hours="168">7 ημ.</button>
+      </div>
+      <button class="btn btn-outline" id="intelTableBtn" aria-pressed="false">▤ Πίνακας</button>
+    </div>
+  </div>
+  <div class="cat-grid" id="catCards"></div>
+  <div class="intel-charts" id="intelCharts">
+    <figure class="chart-card">
+      <figcaption><b id="trendTitle">Ευρήματα ανά ώρα</b><small>ανά κατηγορία</small></figcaption>
+      <div class="legend" id="trendLegend"></div>
+      <div class="chart" id="trendChart"></div>
+    </figure>
+    <figure class="chart-card">
+      <figcaption><b>Προς ποιο AI πηγαίνουν</b><small>ευρήματα ανά AI provider</small></figcaption>
+      <div class="chart" id="providerChart"></div>
+    </figure>
+  </div>
+  <div class="table-wrap" id="intelTable" hidden></div>
+  <div class="viz-tip" id="vizTip" role="status" hidden></div>
+</section>
+
+<!-- ================= 6. Incident Investigation Center ================= -->
+<section class="panel inv-panel" id="investigations">
+  <div class="panel-head">
+    <div><div class="eyebrow">INCIDENT INVESTIGATION CENTER</div><h3>Διερεύνηση περιστατικών</h3>
+    <p>Acknowledge → Investigate → Resolve με αιτιολογία. Κάθε ενέργεια καταγράφεται.</p></div>
+    <button class="btn btn-primary" id="refreshBtn">↻ Ανανέωση</button>
+  </div>
+  <div class="metrics inv-metrics">
+    <button class="metric kpi" data-status="OPEN"><div class="metric-top"><span>OPEN</span><b class="red">●</b></div><strong id="kpiOpen">—</strong><small>Χωρίς ανάθεση</small></button>
+    <button class="metric kpi" data-status="ACKNOWLEDGED"><div class="metric-top"><span>ACKNOWLEDGED</span><b class="amber">●</b></div><strong id="kpiAck">—</strong><small>Ανατέθηκαν σε analyst</small></button>
+    <button class="metric kpi" data-status="INVESTIGATING"><div class="metric-top"><span>INVESTIGATING</span><b class="blue">●</b></div><strong id="kpiInv">—</strong><small>Υπό διερεύνηση</small></button>
+    <button class="metric kpi" data-status="RESOLVED"><div class="metric-top"><span>RESOLVED</span><b class="cyan">✓</b></div><strong id="kpiRes">—</strong><small id="kpiMttr">Μέσος χρόνος επίλυσης —</small></button>
+  </div>
+  <div class="filters">
+    <input id="searchInput" placeholder="Αναζήτηση ID, provider, ομάδας, analyst…">
+    <select id="statusFilter"><option value="ACTIVE">Ενεργά (Open / Ack / Investigating)</option><option value="">Όλες οι καταστάσεις</option><option>OPEN</option><option>ACKNOWLEDGED</option><option>INVESTIGATING</option><option>RESOLVED</option></select>
+    <select id="riskFilter"><option value="">Όλα τα severity</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+    <select id="categoryFilter"><option value="">Όλες οι κατηγορίες</option></select>
+    <select id="providerFilter"><option value="">Όλοι οι providers</option></select>
+  </div>
+  <div class="table-wrap">
+    <table class="inv-table">
+      <thead><tr><th>INCIDENT</th><th>SEVERITY</th><th>AI PROVIDER</th><th>DETECTION CATEGORY</th><th>POLICY ACTION</th><th>ΗΜ/ΝΙΑ</th><th>STATUS</th><th class="right">ΕΝΕΡΓΕΙΕΣ</th></tr></thead>
+      <tbody id="incidentRows"><tr><td colspan="8" class="empty">Σύνδεσε το API για να φορτώσουν τα περιστατικά.</td></tr></tbody>
+    </table>
+  </div>
+  <div class="more-row" id="moreRow" hidden><button class="btn btn-outline" id="moreBtn">Εμφάνιση περισσότερων</button></div>
+  <div class="table-foot"><span id="rowCount">0 περιστατικά</span><span>Οι καθαροί έλεγχοι (ALLOW χωρίς ευρήματα) κλείνουν αυτόματα και δεν εμφανίζονται εδώ.</span></div>
+</section>
+
+<!-- ================= DLP policy matrix ================= -->
+<section class="panel" id="dlp-policy">
+  <div class="panel-head">
+    <div><div class="eyebrow">DLP & CONTENT FILTERING</div><h3>Πολιτική ενεργειών ανά κατηγορία δεδομένων</h3>
+    <p>Η αυστηρότερη ενέργεια κερδίζει: BLOCK › WARN › REDACT › ALLOW. Το REDACT γίνεται με αναστρέψιμα ψευδώνυμα που επανέρχονται μόνο τοπικά.</p></div>
+  </div>
+  <div class="table-wrap"><table class="policy-table">
+    <thead><tr><th>ΚΑΤΗΓΟΡΙΑ ΔΕΔΟΜΕΝΩΝ</th><th>ΣΥΓΚΕΚΡΙΜΕΝΟΣ ΤΥΠΟΣ</th><th>ΕΝΕΡΓΕΙΑ</th><th>ΑΙΤΙΟΛΟΓΗΣΗ</th></tr></thead>
+    <tbody id="policyRows"><tr class="static"><td colspan="4" class="empty">Φόρτωση πολιτικής…</td></tr></tbody>
+  </table></div>
+</section>
+
+<section class="panel shadow-panel" id="shadow-radar">
+<div class="panel-head"><div><div class="eyebrow">AI ASSET DISCOVERY</div><h3>AI Shadow Radar</h3><p>Ανακάλυψη AI εργαλείων από opt-in browser telemetry. Καταγράφονται μόνο domain και team label.</p></div><div class="radar-actions"><button class="btn btn-outline" id="seedShadowBtn">＋ Demo data</button><button class="btn btn-primary" id="refreshShadowBtn">↻ Ανανέωση</button></div></div>
+<div class="shadow-metrics">
+ <article class="metric"><div class="metric-top"><span>AI TOOLS IN INVENTORY</span><b>◉</b></div><strong id="shadowToolsMetric">—</strong><small>Καταχωρισμένα AI domains</small></article>
+ <article class="metric"><div class="metric-top"><span>UNAPPROVED TOOLS</span><b class="red">⚑</b></div><strong id="shadowUnapprovedMetric">—</strong><small>Χρειάζονται policy review</small></article>
+ <article class="metric"><div class="metric-top"><span>VISITS · 7 DAYS</span><b class="cyan">↗</b></div><strong id="shadowEventsMetric">—</strong><small>Παρατηρημένες επισκέψεις</small></article>
+ <article class="metric"><div class="metric-top"><span>TEAMS OBSERVED</span><b>▦</b></div><strong id="shadowTeamsMetric">—</strong><small>Ομαδικές ετικέτες, όχι ονόματα</small></article>
+</div>
+<div class="radar-note"><b>Privacy by design:</b> το Shadow Radar καταγράφει μόνο domain/team metadata. Οι έλεγχοι prompts του Prompt Guard εμφανίζονται στο Investigation Center με πηγή «Extension».</div>
+<div class="panel-subhead"><div><b>AI Tool Inventory</b><small>Η κατάσταση εγκρίνεται από τον administrator και δεν αποτελεί αυτόματη αξιολόγηση του vendor.</small></div></div>
+<div class="table-wrap"><table class="radar-table"><thead><tr><th>PROVIDER</th><th>DOMAIN</th><th>STATUS / POLICY</th><th>VISITS · 7D</th><th>TEAMS</th><th>LAST SEEN</th></tr></thead><tbody id="shadowToolRows"><tr><td colspan="6" class="empty">Σύνδεσε το API για να φορτώσει το inventory.</td></tr></tbody></table></div>
+<div class="panel-subhead"><div><b>Recent discovery events</b><small>Κάθε εγγραφή αντιστοιχεί σε επίσκεψη σε αναγνωρισμένο AI domain.</small></div></div>
+<div class="table-wrap"><table class="radar-table"><thead><tr><th>PROVIDER</th><th>DOMAIN</th><th>TEAM</th><th>STATUS AT EVENT</th><th>SOURCE</th><th>OBSERVED</th></tr></thead><tbody id="shadowEventRows"><tr><td colspan="6" class="empty">Δεν υπάρχουν ακόμη discovery events.</td></tr></tbody></table></div>
+<div class="table-foot"><span id="shadowRowCount">0 AI tools</span><span>Τα demo events επισημαίνονται ως synthetic-demo</span></div>
+</section>
+
+<section class="panel users-panel" id="users">
+  <div class="panel-head">
+    <div><div class="eyebrow">ACCESS MANAGEMENT</div><h3>Χρήστες και πρόσβαση</h3>
+    <p>Εγγραφή με email: ο χρήστης λαμβάνει πρόσκληση και ορίζει μόνος του τον κωδικό του. Κανείς άλλος δεν τον βλέπει.</p></div>
+    <button class="btn btn-outline" type="button" id="refreshUsersBtn">↻ Ανανέωση</button>
+  </div>
+  <div class="shadow-metrics">
+    <article class="metric"><div class="metric-top"><span>ΛΟΓΑΡΙΑΣΜΟΙ</span><b>◉</b></div><strong id="usersTotal">—</strong><small>Όλοι οι χρήστες</small></article>
+    <article class="metric"><div class="metric-top"><span>ΔΙΑΧΕΙΡΙΣΤΕΣ</span><b class="blue">★</b></div><strong id="usersAdmins">—</strong><small>Πρόσβαση στο Admin Console</small></article>
+    <article class="metric"><div class="metric-top"><span>ΕΚΚΡΕΜΕΙΣ ΠΡΟΣΚΛΗΣΕΙΣ</span><b class="amber">✉</b></div><strong id="usersInvited">—</strong><small>Δεν έχουν ενεργοποιηθεί ακόμα</small></article>
+    <article class="metric"><div class="metric-top"><span>ΑΠΕΝΕΡΓΟΠΟΙΗΜΕΝΟΙ</span><b class="red">⦸</b></div><strong id="usersDisabled">—</strong><small>Χωρίς πρόσβαση</small></article>
+  </div>
+
+  <form class="invite-card" id="inviteForm" novalidate>
+    <div class="panel-subhead"><div><b>Εγγραφή νέου χρήστη</b><small id="inviteHint">Θα σταλεί email πρόσκλησης που ισχύει 72 ώρες.</small></div></div>
+    <div class="invite-fields">
+      <label><span>Email</span><input id="inviteEmail" type="email" required maxlength="254" placeholder="name@company.gr" autocomplete="off"></label>
+      <label><span>Ονοματεπώνυμο</span><input id="inviteName" maxlength="80" placeholder="π.χ. Μαρία Παπαδάκη" autocomplete="off"></label>
+      <label><span>Ρόλος</span><select id="inviteRole"><option value="user">Χρήστης · User Dashboard</option><option value="admin">Διαχειριστής · Admin Console</option></select></label>
+      <button class="btn btn-primary" type="submit" id="inviteBtn">＋ Εγγραφή &amp; πρόσκληση</button>
+    </div>
+    <div class="invite-result" id="inviteResult" role="status" hidden></div>
+  </form>
+
+  <div class="filters users-filters">
+    <input id="userSearch" placeholder="Αναζήτηση ονόματος ή email…" aria-label="Αναζήτηση χρηστών">
+    <select id="userStatusFilter" aria-label="Κατάσταση"><option value="">Όλες οι καταστάσεις</option><option value="active">Ενεργοί</option><option value="invited">Εκκρεμεί πρόσκληση</option><option value="disabled">Απενεργοποιημένοι</option></select>
+    <select id="userRoleFilter" aria-label="Ρόλος"><option value="">Όλοι οι ρόλοι</option><option value="admin">Διαχειριστές</option><option value="user">Χρήστες</option></select>
+  </div>
+  <div class="table-wrap"><table class="users-table">
+    <thead><tr><th>ΧΡΗΣΤΗΣ</th><th>ΡΟΛΟΣ</th><th>ΚΑΤΑΣΤΑΣΗ</th><th>ΣΥΝΔΕΣΗ ΜΕ</th><th>ΤΕΛΕΥΤΑΙΑ ΣΥΝΔΕΣΗ</th><th class="right">ΕΝΕΡΓΕΙΕΣ</th></tr></thead>
+    <tbody id="userRows"><tr class="static"><td colspan="6" class="empty">Φόρτωση χρηστών…</td></tr></tbody>
+  </table></div>
+  <div class="table-foot"><span id="userCount">0 χρήστες</span><span>Η απενεργοποίηση αποσυνδέει αμέσως τον χρήστη από κάθε συσκευή.</span></div>
+
+  <div class="panel-subhead"><div><b>Ιστορικό λογαριασμών</b><small>Ποιος δημιούργησε, προσκάλεσε, άλλαξε ή αφαίρεσε λογαριασμούς.</small></div></div>
+  <ol class="acct-log" id="acctLog"><li class="muted">—</li></ol>
+</section>
+
+
+<footer>NexGuard Security Console <span>•</span> Security today. Trust tomorrow.</footer>
+</main>
+</div>
+
+<dialog id="settingsDialog">
+  <form method="dialog" class="settings">
+    <div class="panel-head"><div><div class="eyebrow">CONFIGURATION</div><h3>Ρυθμίσεις</h3></div><button class="close" value="cancel">✕</button></div>
+    <label>API Base URL<input id="apiBase" placeholder="http://localhost:8000"></label>
+    <label>Admin API Token<input id="adminToken" type="password" autocomplete="off" placeholder="ADMIN_API_TOKEN"></label>
+    <label>Όνομα analyst<input id="analystName" maxlength="60" placeholder="π.χ. maria.k"></label>
+    <p>Το όνομα analyst καταγράφεται σε κάθε Acknowledge / Investigate / Resolve. Κενό URL = ίδιο origin (http://localhost:8000/admin/). Token και όνομα αποθηκεύονται μόνο στο local storage αυτού του browser.</p>
+    <button class="btn btn-primary" id="saveSettings">Αποθήκευση & σύνδεση</button>
+  </form>
+</dialog>
+
+<dialog id="caseDialog" class="case">
+  <div class="case-head">
+    <div><div class="eyebrow" id="caseEyebrow">INCIDENT</div><h3 id="caseTitle">—</h3><div id="caseTags"></div></div>
+    <button class="close" id="closeCase">✕</button>
+  </div>
+  <div id="caseBody" class="case-body"><p class="muted">Φόρτωση…</p></div>
+  <form id="resolveForm" class="resolve-form" hidden>
+    <b>Resolve με αιτιολογία</b>
+    <label>Κατηγορία επίλυσης<select id="resolveCategory" required></select></label>
+    <label>Αιτιολογία<textarea id="resolveNote" minlength="10" maxlength="1000" required placeholder="Τι διαπιστώθηκε και τι έγινε. Μην γράφεις ευαίσθητα δεδομένα."></textarea></label>
+    <div class="case-actions"><button type="button" class="btn btn-outline" id="cancelResolve">Ακύρωση</button><button class="btn btn-primary" type="submit">✓ Κλείσιμο περιστατικού</button></div>
+  </form>
+  <div class="case-actions" id="caseActions"></div>
+</dialog>
+<script src="script.js?v=1.9.1"></script>
+</body>
+</html>

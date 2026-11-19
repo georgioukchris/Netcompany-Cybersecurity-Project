@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Shield — Ρυθμίσεις</title>
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"><i class="glow g1"></i><i class="glow g2"></i></div>
+
+<div class="app">
+  <header class="top glass">
+    <div class="brand"><span class="orb"></span><div><b>AI <em>SHIELD</em></b><small>BROWSER EXTENSION · <span id="version">v—</span></small></div></div>
+    <div class="overall" id="overall"><i></i><span>Έλεγχος κατάστασης…</span></div>
+  </header>
+
+  <!-- live status -->
+  <section class="status-grid" aria-label="Κατάσταση">
+    <div class="tile glass" id="stBackend"><span class="ico i1">⇄</span><div><small>Backend</small><b>—</b><em></em></div></div>
+    <div class="tile glass" id="stToken"><span class="ico i2">🔑</span><div><small>Token επέκτασης</small><b>—</b><em></em></div></div>
+    <div class="tile glass" id="stGuard"><span class="ico i3">🛡</span><div><small>Prompt Guard</small><b>—</b><em></em></div></div>
+    <div class="tile glass" id="stVault"><span class="ico i4">⛁</span><div><small>Vault ψευδωνύμων</small><b>—</b><em></em></div></div>
+  </section>
+
+  <div class="cols">
+    <div class="col">
+      <!-- connection -->
+      <form class="card glass" id="settingsForm" autocomplete="off">
+        <div class="card-head"><div><div class="eyebrow">ΣΥΝΔΕΣΗ</div><h2>Τοπικό AI Shield backend</h2></div>
+          <button type="button" class="btn ghost" id="testBtn">⟳ Έλεγχος σύνδεσης</button></div>
+
+        <label for="apiBase">API Base URL</label>
+        <input id="apiBase" type="url" placeholder="http://localhost:8000" required>
+
+        <label for="discoveryToken">Token επέκτασης <span class="muted">(SHADOW_INGEST_TOKEN από το .env)</span></label>
+        <div class="with-btn">
+          <input id="discoveryToken" type="password" autocomplete="off" spellcheck="false" required>
+          <button type="button" class="icon" id="toggleToken" aria-label="Εμφάνιση token" title="Εμφάνιση / απόκρυψη">👁</button>
+        </div>
+
+        <label for="teamLabel">Ομάδα <span class="muted">(εμφανίζεται στο dashboard · όχι όνομα εργαζομένου)</span></label>
+        <input id="teamLabel" maxlength="40" placeholder="π.χ. Finance" pattern="[\p{L}\p{N} _\-]{1,40}">
+        <div class="chips" id="teamChips">
+          <button type="button">Engineering</button><button type="button">Finance</button><button type="button">HR</button>
+          <button type="button">Legal</button><button type="button">Customer-Operations</button><button type="button">Marketing</button>
+        </div>
+
+        <div class="test-out" id="testOut" hidden></div>
+      </form>
+
+      <!-- protection -->
+      <section class="card glass">
+        <div class="card-head"><div><div class="eyebrow">ΠΡΟΣΤΑΣΙΑ</div><h2>Prompt Guard</h2></div></div>
+        <label class="switch-row">
+          <span><b>Έλεγχος πριν από κάθε Send</b><small>Το μήνυμα και κάθε συνημμένο PDF ελέγχονται τοπικά με την ίδια πολιτική DLP. Ένα PDF με ευαίσθητα στοιχεία δεν ανεβαίνει: μπαίνει το κείμενό του με ψευδώνυμα. Αν ο έλεγχος αποτύχει, δεν στέλνεται τίποτα.</small></span>
+          <input type="checkbox" id="promptGuardEnabled" form="settingsForm"><i class="switch"></i>
+        </label>
+        <label class="switch-row">
+          <span><b>Επαναφορά πραγματικών τιμών στις απαντήσεις</b><small>Τα ψευδώνυμα (π.χ. [AFM_001]) γίνονται ξανά πραγματικές τιμές μόνο στη δική σου οθόνη.</small></span>
+          <input type="checkbox" id="restoreResponses" form="settingsForm"><i class="switch"></i>
+        </label>
+        <div class="sites">
+          <div class="site"><span class="logo s1">C</span><div><b>ChatGPT</b><small>chatgpt.com · chat.openai.com</small></div></div>
+          <div class="site"><span class="logo s2">G</span><div><b>Gemini</b><small>gemini.google.com</small></div></div>
+          <div class="site"><span class="logo s3">A</span><div><b>Claude</b><small>claude.ai</small></div></div>
+        </div>
+      </section>
+
+      <!-- vault & privacy -->
+      <section class="card glass">
+        <div class="card-head"><div><div class="eyebrow">ΙΔΙΩΤΙΚΟΤΗΤΑ</div><h2>Vault ψευδωνύμων</h2></div>
+          <button type="button" class="btn danger" id="clearVaultBtn">Διαγραφή vault</button></div>
+        <p class="note">Η αντιστοίχιση ψευδώνυμο ↔ τιμή υπάρχει μόνο στη μνήμη του browser, σβήνει όταν τον κλείσεις και δεν στέλνεται ποτέ στο backend ή στο AI. Μετά τη διαγραφή, οι παλιές απαντήσεις δείχνουν μόνο τα ψευδώνυμα.</p>
+        <div class="token-list" id="vaultTokens"><span class="muted">Κενό</span></div>
+        <ul class="privacy">
+          <li>Shadow Radar: καταγράφεται μόνο το domain του AI και η ομάδα.</li>
+          <li>Prompt Guard: το κείμενο ελέγχεται στη μνήμη· στη βάση μένουν μόνο τύποι και πλήθη ευρημάτων, ποτέ το prompt.</li>
+          <li>Συνημμένα PDF: διαβάζονται στη μνήμη από το δικό σου AI Shield backend· δεν αποθηκεύονται ούτε το αρχείο ούτε το όνομά του.</li>
+          <li>Το κουμπί «Copy» των σελίδων AI αντιγράφει το κείμενο με τα ψευδώνυμα.</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="col">
+      <!-- policy preview -->
+      <section class="card glass hl">
+        <div class="card-head"><div><div class="eyebrow">ΔΟΚΙΜΗ ΠΟΛΙΤΙΚΗΣ</div><h2>Τι θα γινόταν αν το έστελνα;</h2></div></div>
+        <p class="note">Δοκιμή χωρίς αποστολή: δεν φεύγει τίποτα προς AI και δεν καταγράφεται περιστατικό. Χρησιμοποίησε μόνο ψεύτικα δεδομένα.</p>
+        <div class="chips samples" id="samples">
+          <button type="button" data-s="Το password: Summer2026!x δεν δουλεύει">🛑 Password</button>
+          <button type="button" data-s="Διάγνωση: διαβήτης τύπου 2&#10;IBAN GR1601101250000000012300695">⚠️ Υγεία + IBAN</button>
+          <button type="button" data-s="Email για τον John Smith, ΑΦΜ 094014201, email j.smith@example.com">✂️ ΑΦΜ + email</button>
+          <button type="button" data-s="Πρόσκληση για τη Μαρία Στασινοπούλου στη Λεωφόρο Κηφισίας 12, Αθήνα">✅ Όνομα</button>
+        </div>
+        <textarea id="previewText" rows="5" maxlength="5000" placeholder="Γράψε ή επικόλλησε ένα κείμενο…"></textarea>
+        <div class="row-end"><span class="muted" id="previewCount">0 / 5.000</span><button type="button" class="btn primary" id="previewBtn">Έλεγχος κειμένου</button></div>
+        <div class="preview" id="previewOut" hidden>
+          <div class="verdict" id="pvVerdict"></div>
+          <p class="pv-reason" id="pvReason"></p>
+          <div class="pv-rules" id="pvRules"></div>
+          <div class="pv-sent"><small id="pvSentLabel">Το AI θα λάμβανε</small><pre id="pvSent"></pre></div>
+        </div>
+      </section>
+
+      <!-- policy matrix -->
+      <section class="card glass">
+        <div class="card-head"><div><div class="eyebrow">ΠΟΛΙΤΙΚΗ DLP</div><h2>Ενέργειες ανά κατηγορία</h2></div></div>
+        <p class="note">Ορίζεται στο backend. Η αυστηρότερη ενέργεια κερδίζει: BLOCK › WARN › REDACT › ALLOW.</p>
+        <div class="policy" id="policyRows"><p class="muted">Συνδέσου για να φορτώσει η πολιτική.</p></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="savebar" id="savebar" hidden>
+  <span id="saveMsg">Υπάρχουν αλλαγές που δεν έχουν αποθηκευτεί</span>
+  <div><button type="button" class="btn ghost" id="revertBtn">Αναίρεση</button><button type="submit" form="settingsForm" class="btn pill" id="saveBtn">ΑΠΟΘΗΚΕΥΣΗ</button></div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="pseudonym-core.js"></script>
+<script src="options.js"></script>
+</body>
+</html>
