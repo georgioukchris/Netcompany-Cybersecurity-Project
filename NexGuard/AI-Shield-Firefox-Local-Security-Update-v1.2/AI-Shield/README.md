@@ -183,16 +183,24 @@ policy action, timestamp and investigation status.
 - Clean scans (ALLOW with no findings) are stored as `AUTO_CLOSED` and are not shown in the queue.
 - Set your analyst name in the dashboard's **Settings**; it is recorded on every action.
 
+## 6b0. v1.9.3 — no more bare "Σφάλμα 500"
+
+- On startup the backend waits for PostgreSQL (up to ~30 s) and upgrades old account tables (missing columns made `/login` fail with 500).
+- Database problems now return `503` with a clear message, and the backend log says what to fix (`docker compose logs backend`). If the schema step failed at startup, the next request retries it automatically.
+- `DATABASE CONNECTION FAILED ... POSTGRES_PASSWORD` in the log means the database volume was created with a different password than the one now in `.env`: put the old password back, or (local demo, data is lost) `docker compose down -v`.
+
 ## 6b2. NexGuard website & login (v1.9.0)
 
 | Address | What | Who |
 |---|---|---|
 | `http://localhost:8000/` | Public website (product, capabilities, contact) | everyone |
-| `http://localhost:8000/login/` | Sign in · Forgot password · Google | everyone |
+| `http://localhost:8000/login/` | Sign in | everyone |
 | `http://localhost:8000/app/` | User Dashboard (Secure AI Chat, extension download) | signed-in users and admins |
 | `http://localhost:8000/admin/` | Admin Console | admins only |
 
 **First admin:** set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` (at least 10 characters with upper case, lower case and a number) and start the stack: the account is created on startup.
+
+If `ADMIN_EMAIL` names an account that already exists (for example the demo user, `ADMIN_EMAIL=test@test.com`) and there is no active administrator yet, that account is made admin on startup; no SQL is needed. Once an admin exists, nothing is changed on later restarts.
 
 **Demo account with a simple password (local demos only):**
 ```
@@ -200,7 +208,7 @@ DEMO_USER_EMAIL=test@test.com
 DEMO_USER_PASSWORD=test
 DEMO_ALLOW_WEAK_PASSWORD=true
 ```
-Only this demo user (role *user*, never admin) may have a password that breaks the rules; the server logs a warning on startup. Remove these lines before the site is reachable by anyone else.
+Only this demo user may have a password that breaks the rules (also when `ADMIN_EMAIL` makes it admin); the server logs a warning on startup. Remove these lines before the site is reachable by anyone else.
 
 **Registering users (Admin Console → Χρήστες):** enter the email, name and role (User / Administrator) and press *Εγγραφή & πρόσκληση*. The person receives an invitation email (valid 72 hours, single use) and sets their own password at `/login/#invite=…`; nobody else ever sees it. Without SMTP the console shows the invitation link to copy and pass on. From the same table: change role (effective immediately), resend an invitation, disable (signs the user out everywhere) / enable, delete. You cannot remove your own admin access, and at least one active administrator always remains. Every change is recorded in *Ιστορικό λογαριασμών*.
 
@@ -213,7 +221,6 @@ docker compose exec backend python manage_users.py disable maria@company.gr
 ```
 The Admin Console now works with the admin's session: no admin token in the browser, and every investigation action is recorded under the signed-in admin's name. `ADMIN_API_TOKEN` still works for scripts/API (`X-Admin-Token` header).
 
-**Forgot password:** the login page sends a single-use link valid for 30 minutes. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` (e.g. a Gmail/Microsoft 365 account with an app password). Without SMTP no email is sent; with `DEBUG=true` the link is printed in `docker compose logs backend` for local testing. The answer is the same whether or not the email exists.
 
 **Sign in with Google:**
 1. Google Cloud Console → APIs & Services → Credentials → *Create credentials* → *OAuth client ID* → *Web application*.

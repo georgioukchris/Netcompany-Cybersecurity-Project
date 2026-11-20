@@ -1,18 +1,13 @@
-/* NexGuard · login page: sign in, forgot password, reset password, Google. */
+/* NexGuard · login page: sign in and account invitation activation. */
 (() => {
   const $ = id => document.getElementById(id);
-  const views = { signed: $("vSigned"), signin: $("vSignin"), forgot: $("vForgot"), reset: $("vReset") };
+  const views = { signed: $("vSigned"), signin: $("vSignin"), reset: $("vReset") };
   const params = new URLSearchParams(location.search);
   const next = params.get("next") || "";
   let minLen = 10;
   let resetToken = "";
 
   const ERRORS = {
-    google_not_configured: "Η σύνδεση με Google δεν έχει ρυθμιστεί ακόμα. Χρησιμοποίησε email και κωδικό.",
-    google_failed: "Η σύνδεση με Google απέτυχε. Δοκίμασε ξανά.",
-    google_cancelled: "Η σύνδεση με Google ακυρώθηκε.",
-    google_unverified: "Ο λογαριασμός Google δεν έχει επιβεβαιωμένο email.",
-    account_not_allowed: "Αυτός ο λογαριασμός Google δεν έχει πρόσβαση στο NexGuard. Ζήτησε πρόσβαση από τον διαχειριστή.",
     account_disabled: "Ο λογαριασμός είναι απενεργοποιημένος. Επικοινώνησε με τον διαχειριστή."
   };
 
@@ -56,18 +51,6 @@
     btn.setAttribute("aria-label", hidden ? "Απόκρυψη κωδικού" : "Εμφάνιση κωδικού");
   }));
 
-  // ------------------------------------------------------------ navigation between views
-  $("toForgot").addEventListener("click", e => {
-    e.preventDefault(); alertBox("");
-    $("forgotEmail").value = $("email").value;
-    show("forgot");
-  });
-  document.querySelectorAll("[data-view]").forEach(a => a.addEventListener("click", e => {
-    e.preventDefault(); alertBox("");
-    history.replaceState(null, "", location.pathname + location.search);
-    show(a.dataset.view);
-  }));
-
   // ------------------------------------------------------------ sign in
   $("signinForm").addEventListener("submit", async e => {
     e.preventDefault();
@@ -84,25 +67,6 @@
       alertBox(err.message);
       $("password").value = "";
       $("password").focus();
-      busy(btn, false);
-    }
-  });
-
-  // ------------------------------------------------------------ forgot password
-  $("forgotForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    const email = $("forgotEmail").value.trim();
-    $("forgotEmail").setAttribute("aria-invalid", String(!validEmail(email)));
-    if (!validEmail(email)) { alertBox("Γράψε ένα έγκυρο email."); return; }
-    const btn = $("forgotBtn");
-    busy(btn, true, "Αποστολή…");
-    try {
-      const data = await post("/api/auth/forgot", { email });
-      alertBox(data.message, "success");
-      $("forgotForm").reset();
-    } catch (err) {
-      alertBox(err.message);
-    } finally {
       busy(btn, false);
     }
   });
@@ -155,20 +119,15 @@
       $("resetTitle").textContent = "Ενεργοποίηση λογαριασμού";
       $("resetIntro").hidden = false;
       $("resetBtn").textContent = "Ενεργοποίηση";
-      $("inviteGoogle").hidden = false;
       document.title = "Ενεργοποίηση λογαριασμού — NexGuard";
     }
-    const google = $("googleBtn");
-    if (next) google.href = `/api/auth/google/start?next=${encodeURIComponent(next)}`;
     try {
       const cfg = await (await fetch("/api/auth/config", { credentials: "same-origin" })).json();
       minLen = cfg.password_min || minLen;
       $("minLen").textContent = minLen;
-      if (!cfg.google) { google.classList.add("off"); google.setAttribute("aria-disabled", "true"); google.tabIndex = -1; $("googleOff").hidden = false; }
     } catch { /* keep defaults */ }
 
     if (resetToken) { show("reset"); return; }
-    if (location.hash === "#forgot") { show("forgot"); return; }
     const err = params.get("error");
     if (err) alertBox(ERRORS[err] || "Η σύνδεση απέτυχε. Δοκίμασε ξανά.");
     try {

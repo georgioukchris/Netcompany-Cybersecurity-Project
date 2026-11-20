@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 import re
 
+import psycopg
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse, Response
@@ -39,19 +40,69 @@ from intelligence import (
 from ai.gateway import chat as ai_chat, SUPPORTED_PROVIDERS
 
 logger = logging.getLogger("ai_shield")
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s: %(message)s")
+
+_schema = {"ready": False}
+
+
+def prepare_database(attempts: int = 1) -> bool:
+    """Schema upgrade + first accounts. On failure the next request that hits the database retries."""
+    try:
+        init_db(attempts=attempts)
+        auth.bootstrap_users()
+        _schema["ready"] = True
+        logger.info("Database ready.")
+    except psycopg.OperationalError as exc:
+        logger.error("DATABASE CONNECTION FAILED: %s. Check that the db container is running and that "
+                     "POSTGRES_PASSWORD in .env is the one the database volume was created with.",
+                     str(exc).strip().splitlines()[0] if str(exc).strip() else type(exc).__name__)
+    except Exception:
+        logger.exception("Database schema init failed")
+    return _schema["ready"]
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    try:
-        init_db()
-        auth.bootstrap_users()
-    except Exception as exc:
-        logger.warning("Database schema init failed: %s", exc)
+    await run_in_threadpool(prepare_database, 15)   # up to ~30 s while PostgreSQL starts
     yield
 
 app = FastAPI(title="AI Shield API", version="2.0.0",
               description="Secure AI gateway with prompt scanning and policy enforcement",
               lifespan=lifespan)
+
+
+
+# ---- No bare "500": database problems get a clear answer and a log line that says what to fix.
+DB_DOWN_MSG = "Η βάση δεδομένων δεν είναι διαθέσιμη. Δοκίμασε ξανά σε λίγο (λεπτομέρειες: docker compose logs backend)."
+
+
+@app.exception_handler(psycopg.errors.UniqueViolation)
+async def db_duplicate(_: Request, exc: Exception):
+    return JSONResponse({"detail": "Υπάρχει ήδη εγγραφή με αυτά τα στοιχεία."}, status_code=409)
+
+
+@app.exception_handler(psycopg.Error)
+async def db_error(request: Request, exc: Exception):
+    if isinstance(exc, psycopg.OperationalError):
+        logger.error("Database unavailable on %s %s: %s", request.method, request.url.path,
+                     str(exc).strip().splitlines()[0] if str(exc).strip() else type(exc).__name__)
+        _schema["ready"] = False
+    else:
+        logger.error("Database error on %s %s", request.method, request.url.path, exc_info=exc)
+    # Missing tables/columns (old volume, or the schema step failed at startup): upgrade now.
+    if not _schema["ready"] or isinstance(exc, (psycopg.errors.UndefinedTable, psycopg.errors.UndefinedColumn)):
+        _schema["ready"] = False
+        if await run_in_threadpool(prepare_database, 1):
+            return JSONResponse({"detail": "Η βάση ενημερώθηκε. Δοκίμασε ξανά."}, status_code=503)
+    return JSONResponse({"detail": DB_DOWN_MSG}, status_code=503)
+
+
+@app.exception_handler(Exception)
+async def unexpected_error(request: Request, exc: Exception):
+    logger.error("Unhandled error on %s %s", request.method, request.url.path, exc_info=exc)
+    return JSONResponse({"detail": "Εσωτερικό σφάλμα του server (λεπτομέρειες: docker compose logs backend)."},
+                        status_code=500)
+
 
 cors_origins = [o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",") if o.strip()]
 @app.middleware("http")
@@ -284,11 +335,16 @@ class ChatRequest(BaseModel):
     confirm_warning: bool = False
     warn_incident_id: int | None = None
 
+def same_secret(given: str, expected: str) -> bool:
+    """Constant-time comparison that also accepts non-ASCII input (str compare_digest raises TypeError)."""
+    return secrets.compare_digest(str(given).encode("utf-8"), str(expected).encode("utf-8"))
+
+
 def verify_admin(token: str | None):
     expected = os.getenv("ADMIN_API_TOKEN", "")
     if not expected or not token:
         raise HTTPException(status_code=401, detail="Admin authentication required")
-    if not secrets.compare_digest(token, expected):
+    if not same_secret(token, expected):
         raise HTTPException(status_code=401, detail="Invalid admin token")
 
 
@@ -335,7 +391,7 @@ def require_user(request: Request):
 def require_discovery(x_discovery_token: str | None = Header(default=None)):
     """Same for the browser-extension endpoints (X-Discovery-Token)."""
     expected = os.getenv("SHADOW_INGEST_TOKEN", "")
-    if not expected or not x_discovery_token or not secrets.compare_digest(x_discovery_token, expected):
+    if not expected or not x_discovery_token or not same_secret(x_discovery_token, expected):
         raise HTTPException(status_code=401, detail="Invalid discovery token")
 
 def record_event(user_id, provider, action, risk, findings, content_type="text"):
@@ -590,7 +646,7 @@ def shadow_catalog():
 @app.post("/api/shadow/events", dependencies=[Depends(require_discovery)])
 def ingest_shadow_event(request: ShadowEventRequest, x_discovery_token: str | None = Header(default=None)):
     expected = os.getenv("SHADOW_INGEST_TOKEN", "")
-    if not expected or not x_discovery_token or not secrets.compare_digest(x_discovery_token, expected):
+    if not expected or not x_discovery_token or not same_secret(x_discovery_token, expected):
         raise HTTPException(status_code=401, detail="Invalid discovery token")
     try:
         result = record_shadow_event(request.domain, request.install_id, request.team_label)
@@ -611,7 +667,7 @@ def shadow_scan_prompt(request: ShadowPromptScanRequest,
     team label, policy action/risk and finding types/counts, never prompt text or matches.
     """
     expected = os.getenv("SHADOW_INGEST_TOKEN", "")
-    if not expected or not x_discovery_token or not secrets.compare_digest(x_discovery_token, expected):
+    if not expected or not x_discovery_token or not same_secret(x_discovery_token, expected):
         raise HTTPException(status_code=401, detail="Invalid discovery token")
     scan_result, policy, allowed, safe_prompt, incident = policy_check(
         request.prompt,
@@ -722,7 +778,7 @@ def shadow_scan_file(request: ShadowFileScanRequest):
 
 def verify_discovery(token: str | None):
     expected = os.getenv("SHADOW_INGEST_TOKEN", "")
-    if not expected or not token or not secrets.compare_digest(token, expected):
+    if not expected or not token or not same_secret(token, expected):
         raise HTTPException(status_code=401, detail="Invalid discovery token")
 
 
@@ -856,10 +912,6 @@ class LoginRequest(BaseModel):
     next: str | None = Field(default=None, max_length=200)
 
 
-class ForgotRequest(BaseModel):
-    email: str = Field(min_length=3, max_length=254)
-
-
 class ResetRequest(BaseModel):
     token: str = Field(min_length=20, max_length=100)
     password: str = Field(min_length=1, max_length=200)
@@ -895,8 +947,7 @@ def base_url(request: Request) -> str:
 @app.get("/api/auth/config")
 def auth_config():
     """What the login page can offer (no secrets)."""
-    return {"google": auth.google_config() is not None, "password_reset_email": auth.mail_configured(),
-            "password_min": auth.PASSWORD_MIN}
+    return {"password_reset_email": auth.mail_configured(), "password_min": auth.PASSWORD_MIN}
 
 
 @app.post("/api/auth/login")
@@ -935,34 +986,6 @@ def auth_me(request: Request):
     return {"user": {"id": user["id"], "email": user["email"], "name": user["display_name"], "role": user["role"]}}
 
 
-FORGOT_REPLY = {"ok": True, "message": "Αν υπάρχει λογαριασμός με αυτό το email, θα λάβεις σύνδεσμο επαναφοράς σε λίγα λεπτά."}
-
-
-@app.post("/api/auth/forgot")
-def auth_forgot(body: ForgotRequest, request: Request):
-    check_same_origin(request)
-    ip, email = client_ip(request), auth.normalize_email(body.email)
-    if auth.reset_by_ip.blocked(ip) or auth.reset_by_email.blocked(email):
-        raise HTTPException(status_code=429, detail="Πολλά αιτήματα. Δοκίμασε ξανά σε 15 λεπτά.")
-    auth.reset_by_ip.hit(ip)
-    auth.reset_by_email.hit(email)
-    user = auth.get_user_by_email(email) if auth.valid_email(email) else None
-    if user and not user["disabled"]:
-        token = auth.create_reset(user["id"])
-        # The token travels in the #fragment: browsers never send it to servers, proxies or logs.
-        link = f"{base_url(request)}/login/#reset={token}"
-        body_text = (f"Γεια σου {user['display_name']},\n\nΖητήθηκε επαναφορά του κωδικού σου στο NexGuard.\n"
-                     f"Άνοιξε τον σύνδεσμο μέσα σε {auth.RESET_MINUTES} λεπτά:\n\n{link}\n\n"
-                     "Αν δεν το ζήτησες εσύ, αγνόησε αυτό το μήνυμα· ο κωδικός σου δεν αλλάζει.\n\n— NexGuard")
-        if not auth.send_mail(user["email"], "NexGuard · Επαναφορά κωδικού", body_text):
-            if os.getenv("DEBUG", "false").lower() == "true":
-                # Local development without SMTP only: the link appears in the server console.
-                logger.warning("[DEV] Password reset link for %s: %s", user["email"], link)
-            else:
-                logger.warning("Password reset requested but SMTP is not configured (set SMTP_HOST in .env).")
-    return FORGOT_REPLY
-
-
 @app.post("/api/auth/reset")
 def auth_reset(body: ResetRequest, request: Request):
     check_same_origin(request)
@@ -981,40 +1004,6 @@ def auth_reset(body: ResetRequest, request: Request):
         return {"ok": True, "message": "Ο λογαριασμός σου ενεργοποιήθηκε. Συνδέσου με τον κωδικό που όρισες."}
     return {"ok": True, "message": "Ο κωδικός άλλαξε. Συνδέσου με τον νέο κωδικό."}
 
-
-def google_redirect_uri(cfg: dict, request: Request) -> str:
-    return cfg["redirect_uri"] or f"{base_url(request)}/api/auth/google/callback"
-
-
-@app.get("/api/auth/google/start", include_in_schema=False)
-def auth_google_start(request: Request, next: str | None = None):
-    cfg = auth.google_config()
-    if cfg is None:
-        return RedirectResponse("/login/?error=google_not_configured", status_code=303)
-    path = next if next and next.startswith("/") and not next.startswith("//") else ""
-    state, verifier, nonce = auth.create_oauth_state(path[:200])
-    return RedirectResponse(auth.google_auth_url(cfg, google_redirect_uri(cfg, request), state, verifier, nonce), status_code=303)
-
-
-@app.get("/api/auth/google/callback", include_in_schema=False)
-def auth_google_callback(request: Request, code: str | None = None, state: str | None = None,
-                         error: str | None = None):
-    cfg = auth.google_config()
-    if cfg is None:
-        return RedirectResponse("/login/?error=google_not_configured", status_code=303)
-    saved = auth.consume_oauth_state(state or "")
-    if error or not code or saved is None:
-        return RedirectResponse(f"/login/?error={'google_cancelled' if error else 'google_failed'}", status_code=303)
-    try:
-        claims = auth.google_exchange(cfg, code, saved["code_verifier"], google_redirect_uri(cfg, request), saved["nonce"])
-        user = auth.google_user(cfg, claims)
-    except auth.GoogleError as exc:
-        return RedirectResponse(f"/login/?error={exc.code}", status_code=303)
-    except Exception:
-        logger.exception("Google sign-in failed")
-        return RedirectResponse("/login/?error=google_failed", status_code=303)
-    token, max_age = auth.create_session(user["id"], False)
-    return with_session(RedirectResponse(safe_next(saved["next_path"], user), status_code=303), request, token, max_age)
 
 
 # ============================ Users (Admin Console → Χρήστες) ============================
@@ -1087,7 +1076,7 @@ def send_invitation(request: Request, user: dict, actor: str) -> dict:
     link = f"{base_url(request)}/login/#invite={token}"
     text = (f"Γεια σου {user['display_name']},\n\nΣε προσκάλεσαν στο NexGuard ως {ROLE_EL[user['role']]}.\n"
             f"Όρισε τον κωδικό σου μέσα σε {auth.INVITE_HOURS} ώρες:\n\n{link}\n\n"
-            "Αν η εταιρεία σου χρησιμοποιεί Google, μπορείς επίσης να συνδέεσαι με «Σύνδεση με Google» με αυτό το email.\n\n— NexGuard")
+            "— NexGuard")
     sent = auth.send_mail(user["email"], "NexGuard · Πρόσκληση στην πλατφόρμα", text)
     auth.log_activity(actor, "INVITE", user["email"], "email πρόσκλησης" if sent else "σύνδεσμος πρόσκλησης (χωρίς email)")
     # Without SMTP the admin gets the link to pass on; with SMTP it travels only by email.
@@ -1114,7 +1103,10 @@ def admin_create_user(body: UserCreateRequest, request: Request):
     actor, _ = admin_actor(request)
     if auth.get_user_by_email(body.email):
         raise HTTPException(status_code=409, detail="Υπάρχει ήδη λογαριασμός με αυτό το email.")
-    user = auth.create_user(body.email, body.name or body.email.split("@")[0], body.role, None)
+    try:
+        user = auth.create_user(body.email, body.name or body.email.split("@")[0], body.role, None)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     auth.log_activity(actor, "CREATE", user["email"], ROLE_EL[user["role"]])
     return {"user": {"id": user["id"], "email": user["email"], "name": user["display_name"], "role": user["role"]},
             **send_invitation(request, user, actor)}

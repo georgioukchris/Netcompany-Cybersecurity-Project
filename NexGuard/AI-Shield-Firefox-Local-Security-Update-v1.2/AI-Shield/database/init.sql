@@ -139,7 +139,22 @@ CREATE TABLE IF NOT EXISTS oauth_states (
     expires_at     TIMESTAMPTZ  NOT NULL
 );
 
--- Invitations from the Admin Console reuse the one-time link mechanism of "forgot password".
+-- Upgrade account tables created by older versions (CREATE TABLE IF NOT EXISTS never adds columns;
+-- a missing column made /login answer 500).
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS display_name  VARCHAR(80)  NOT NULL DEFAULT '';
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS role          VARCHAR(10)  NOT NULL DEFAULT 'user';
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS google_sub    VARCHAR(255);
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS disabled      BOOLEAN      NOT NULL DEFAULT FALSE;
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW();
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+ALTER TABLE app_users ALTER COLUMN password_hash DROP NOT NULL;   -- invited users have no password yet
+ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE password_resets ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE password_resets ADD COLUMN IF NOT EXISTS used_at    TIMESTAMPTZ;
+
+-- Invitations from the Admin Console use one-time activation links.
 ALTER TABLE password_resets ADD COLUMN IF NOT EXISTS purpose VARCHAR(8) NOT NULL DEFAULT 'reset';
 ALTER TABLE password_resets DROP CONSTRAINT IF EXISTS password_resets_purpose_check;
 ALTER TABLE password_resets ADD CONSTRAINT password_resets_purpose_check CHECK (purpose IN ('reset', 'invite'));

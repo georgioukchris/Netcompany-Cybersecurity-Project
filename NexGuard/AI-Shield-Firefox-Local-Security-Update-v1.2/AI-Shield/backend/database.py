@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 import random
+import time
 
 import psycopg
 from psycopg.rows import dict_row
@@ -24,16 +25,23 @@ SCHEMA_PATH_CANDIDATES = [
 ]
 
 
-def init_db() -> None:
-    """Create or upgrade the schema safely on every application start."""
+def init_db(attempts: int = 1, delay: float = 2.0) -> None:
+    """Create or upgrade the schema safely (idempotent). Retries while the database is starting."""
     for path in SCHEMA_PATH_CANDIDATES:
         if path.is_file():
             sql = path.read_text(encoding="utf-8")
             break
     else:
         raise FileNotFoundError("init.sql not found")
-    with get_connection() as conn:
-        conn.execute(sql)
+    for attempt in range(1, attempts + 1):
+        try:
+            with get_connection() as conn:
+                conn.execute(sql)
+            return
+        except psycopg.OperationalError:
+            if attempt == attempts:
+                raise
+            time.sleep(delay)
 
 
 INCIDENT_COLUMNS = """id, user_id, tool_name, action, risk, findings, created_at,

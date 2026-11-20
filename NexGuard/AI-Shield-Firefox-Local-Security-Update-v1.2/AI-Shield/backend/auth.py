@@ -151,9 +151,10 @@ def touch_login(user_id: int) -> None:
 
 
 def bootstrap_users() -> None:
-    """Create the first admin (and optionally a demo user) from the environment.
-    Existing accounts are never modified (their password is not overwritten)."""
-    for prefix, role in (("ADMIN", "admin"), ("DEMO_USER", "user")):
+    """Create the demo user and the first admin from the environment, then make sure there is an
+    administrator. Passwords of existing accounts are never overwritten."""
+    # Demo user first: ADMIN_EMAIL may point at the demo account (e.g. ADMIN_EMAIL=test@test.com).
+    for prefix, role in (("DEMO_USER", "user"), ("ADMIN", "admin")):
         email = normalize_email(os.getenv(f"{prefix}_EMAIL", ""))
         password = os.getenv(f"{prefix}_PASSWORD", "")
         if not email:
@@ -175,6 +176,29 @@ def bootstrap_users() -> None:
                                "Use it only for local demos, never on a server reachable by others.", email)
         except Exception as exc:
             logger.warning("Could not create %s account from .env: %s", role, exc)
+    try:
+        ensure_first_admin()
+    except Exception as exc:
+        logger.warning("Could not set the first admin from ADMIN_EMAIL: %s", exc)
+
+
+def ensure_first_admin() -> None:
+    """While there is no active administrator, the existing account named in ADMIN_EMAIL is made
+    admin (role only; the password is not touched). Once an admin exists nothing is changed, so a
+    role later changed in the Admin Console is not undone on restart."""
+    email = normalize_email(os.getenv("ADMIN_EMAIL", ""))
+    if not email:
+        return
+    user = get_user_by_email(email)
+    if user is None or user["role"] == "admin" or user["disabled"]:
+        return
+    if active_admins_except(user["id"]) > 0:
+        return
+    update_user(user["id"], role="admin")
+    log_activity("system", "ROLE", email, "admin από ADMIN_EMAIL (.env), πρώτη εκκίνηση")
+    logger.info("Account %s is now admin (ADMIN_EMAIL, no administrator existed).", email)
+    if email == normalize_email(os.getenv("DEMO_USER_EMAIL", "")) and password_problem(os.getenv("DEMO_USER_PASSWORD", "")):
+        logger.warning("ADMIN account %s has a WEAK demo password. Use it only for local demos.", email)
 
 
 # ------------------------------------------------------------------ sessions
